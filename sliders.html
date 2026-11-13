@@ -388,7 +388,7 @@
             flex-wrap: wrap;
             justify-content: center;
             gap: 8px;
-            max-width: 120px; /* two dice per row, so four dice make a 2x2 block */
+            max-width: 120px; /* two dice per row: three dice make a centred triangle */
         }
 
         .die {
@@ -829,11 +829,11 @@
 
         // ---- Dice ----
         // Once every point is spent, each core category rolls a d20. The more firmly it's held,
-        // the more dice it rolls, keeping the highest: Fixed = 4 (quadruple advantage),
+        // the more dice it rolls, keeping the highest: Fixed = 3 (double advantage),
         // Firm = 2 (advantage), Flex = 1 (flat).
 
         const ROLL_MODES = {
-            [FIXED]: { dice: 4, name: 'Quadruple advantage', resultLabel: 'Highest' },
+            [FIXED]: { dice: 3, name: 'Double advantage', resultLabel: 'Highest' },
             [FIRM]: { dice: 2, name: 'Advantage', resultLabel: 'Highest' },
             [FLEX]: { dice: 1, name: 'Flat roll', resultLabel: 'Roll' },
         };
