@@ -451,6 +451,8 @@
             100% { transform: scale(1); }
         }
 
+        .die.waiting { opacity: 0.3; }
+
         .die.best .die-body { fill: var(--blue); }
         .die.best .die-face { fill: var(--blue-dark); }
         .die.best .die-body,
@@ -842,7 +844,8 @@
         }
 
         // ---- Dice ----
-        // Once every point is spent, each core category rolls a d20. The more firmly it's held,
+        // Once every point is spent, each core category rolls d20s, one category at a time from
+        // highest priority to lowest. The more firmly it's held,
         // the more dice it rolls, keeping the highest: Fixed = 3 (double advantage),
         // Firm = 2 (advantage), Flex = 1 (flat).
 
@@ -928,57 +931,85 @@
             die.querySelector('text').textContent = value;
         }
 
+        // Highest priority first: Fixed, then Firm, then Flex. Ties keep left-to-right order.
+        function rollOrder() {
+            return [...els.diceColumns].sort((a, b) =>
+                state.levels[b.dataset.slider] - state.levels[a.dataset.slider]);
+        }
+
+        // Lay out every column straight away (dice waiting, blank), then roll one set at a time.
         function rollAll() {
             stopRolling();
             els.diceStatus.textContent = '';
             const animate = !prefersReducedMotion();
-            const results = [];
-            let columnsPending = CORE_SLIDERS.length;
 
-            els.diceColumns.forEach((column, columnIndex) => {
-                const key = column.dataset.slider;
-                const mode = ROLL_MODES[state.levels[key]];
+            const sets = rollOrder().map(column => {
+                const mode = ROLL_MODES[state.levels[column.dataset.slider]];
                 const rolls = Array.from({ length: mode.dice }, rollD20);
-                const dice = rolls.map(makeDie);
-                const result = column.querySelector('.dice-result');
-
+                const dice = rolls.map(() => {
+                    const die = makeDie();
+                    die.classList.add('waiting');
+                    return die;
+                });
                 column.querySelector('.dice-mode').textContent = mode.name;
                 column.querySelector('.dice-result-label').textContent = mode.resultLabel;
                 column.querySelector('.dice-set').replaceChildren(...dice);
-                result.textContent = '…';
+                const result = column.querySelector('.dice-result');
+                result.textContent = '';
                 result.classList.remove('final');
+                return { column, mode, rolls, dice, result };
+            });
 
-                const finishColumn = () => {
-                    const best = Math.max(...rolls);
-                    const bestIndex = rolls.indexOf(best);
-                    dice.forEach((die, i) => die.classList.add(i === bestIndex ? 'best' : 'dim'));
-                    result.textContent = best;
-                    result.classList.add('final');
-                    results[columnIndex] = `${column.querySelector('.dice-title').textContent}, ${mode.name.toLowerCase()}: ${rolls.join(', ')}. ${mode.resultLabel} ${best}.`;
-                    if (--columnsPending === 0) els.diceStatus.textContent = results.join(' ');
-                };
+            const summary = [];
+            const finishSet = ({ column, mode, rolls, dice, result }) => {
+                const best = Math.max(...rolls);
+                const bestIndex = rolls.indexOf(best);
+                dice.forEach((die, i) => die.classList.add(i === bestIndex ? 'best' : 'dim'));
+                result.textContent = best;
+                result.classList.add('final');
+                summary.push(`${column.querySelector('.dice-title').textContent}, ${mode.name.toLowerCase()}: ${rolls.join(', ')}. ${mode.resultLabel} ${best}.`);
+                if (summary.length === sets.length) els.diceStatus.textContent = summary.join(' ');
+            };
 
-                if (!animate) {
-                    dice.forEach((die, i) => setFace(die, rolls[i]));
-                    finishColumn();
-                    return;
-                }
+            if (!animate) {
+                sets.forEach(set => {
+                    set.dice.forEach((die, i) => {
+                        die.classList.remove('waiting');
+                        setFace(die, set.rolls[i]);
+                    });
+                    finishSet(set);
+                });
+                return;
+            }
 
-                // Each die tumbles through random faces, then lands; columns and dice land in a stagger.
-                let dicePending = dice.length;
-                dice.forEach((die, i) => {
+            const later = (fn, ms) => {
+                const id = setTimeout(fn, ms);
+                cancelRolls.push(() => clearTimeout(id));
+            };
+
+            // Each die tumbles through random faces, then lands; the next set starts after a short pause.
+            const rollSet = index => {
+                if (index === sets.length) return;
+                const set = sets[index];
+                set.result.textContent = '…';
+                let dicePending = set.dice.length;
+                set.dice.forEach((die, i) => {
+                    die.classList.replace('waiting', 'rolling');
                     setFace(die, rollD20());
-                    die.classList.add('rolling');
                     const tumble = setInterval(() => setFace(die, rollD20()), 70);
-                    const land = setTimeout(() => {
+                    cancelRolls.push(() => clearInterval(tumble));
+                    later(() => {
                         clearInterval(tumble);
                         die.classList.replace('rolling', 'landed');
-                        setFace(die, rolls[i]);
-                        if (--dicePending === 0) finishColumn();
-                    }, 800 + columnIndex * 250 + i * 150);
-                    cancelRolls.push(() => { clearInterval(tumble); clearTimeout(land); });
+                        setFace(die, set.rolls[i]);
+                        if (--dicePending === 0) {
+                            finishSet(set);
+                            later(() => rollSet(index + 1), 400);
+                        }
+                    }, 800 + i * 150);
                 });
-            });
+            };
+            rollSet(0);
         }
 
         // Line each dice column up under its slider (which moves when the Team slider appears).
