@@ -5,6 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Trade-offs</title>
     <style>
+        :root {
+            --blue: #0D9DDA;
+            --blue-dark: #0A7DB8;
+            --green: #41B658;
+            --green-dark: #359649;
+            --yellow: #FCC003;
+            --yellow-dark: #E0A802;
+            --red: #FE5C4C;
+            --red-dark: #E04A3D;
+            --text: #333;
+            --text-muted: #555;
+            --panel: #f9f9f9;
+            --callout-bg: #fff3cd;
+            --callout-border: #ffc107;
+            --callout-text: #856404;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -32,28 +49,35 @@
 
         h1 {
             text-align: center;
-            color: #333;
+            color: var(--text);
             margin-bottom: 10px;
             font-size: 2em;
         }
+
+        /* ---- Points counter ---- */
 
         .points-display {
             text-align: center;
             font-size: 1.5em;
             margin-bottom: 40px;
-            color: #0D9DDA;
+            color: var(--blue);
             font-weight: bold;
         }
 
-        .points-display.no-points {
-            color: #e74c3c;
+        .points-display.zero-points { color: #27ae60; }
+        .points-display.no-points { color: #e74c3c; }
+        .points-display.shake { animation: shake 0.5s; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
         }
 
-        .points-display.zero-points {
-            color: #27ae60;
-        }
+        /* ---- Sliders ---- */
 
         .sliders-container {
+            position: relative;
             display: flex;
             justify-content: space-around;
             gap: 40px;
@@ -71,7 +95,7 @@
             font-size: 1.2em;
             font-weight: bold;
             margin-bottom: 20px;
-            color: #555;
+            color: var(--text-muted);
         }
 
         .slider {
@@ -97,16 +121,16 @@
             font-size: 1.1em;
         }
 
-        .slider-option:hover:not(.selected) {
-            background: #f9f9f9;
+        .slider-option:hover:not(.selected):not(.disabled) {
+            background: var(--panel);
             border-color: #bbb;
             transform: scale(1.05);
         }
 
         .slider-option.selected {
-            background: linear-gradient(135deg, #0D9DDA 0%, #0A7DB8 100%);
+            background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
             color: white;
-            border-color: #0D9DDA;
+            border-color: var(--blue);
             transform: scale(1.08);
             box-shadow: 0 5px 15px rgba(13, 157, 218, 0.4);
         }
@@ -116,17 +140,9 @@
             cursor: not-allowed;
         }
 
-        .slider-option.disabled:hover {
-            transform: none;
-            background: white;
-            border-color: #ddd;
-        }
+        /* Team slider: hidden until the player overdraws, then coloured by health */
 
-        #teamSliderWrapper {
-            display: none;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
+        #teamSliderWrapper { display: none; }
 
         #teamSliderWrapper.visible {
             display: flex;
@@ -134,103 +150,45 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateX(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         .team-slider .slider-option[data-level="2"].selected {
-            background: linear-gradient(135deg, #41B658 0%, #359649 100%);
-            border-color: #41B658;
+            background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+            border-color: var(--green);
             box-shadow: 0 5px 15px rgba(65, 182, 88, 0.4);
         }
 
         .team-slider .slider-option[data-level="1"].selected {
-            background: linear-gradient(135deg, #FCC003 0%, #E0A802 100%);
-            border-color: #FCC003;
+            background: linear-gradient(135deg, var(--yellow) 0%, var(--yellow-dark) 100%);
+            border-color: var(--yellow);
             box-shadow: 0 5px 15px rgba(252, 192, 3, 0.4);
         }
 
         .team-slider .slider-option[data-level="0"].selected {
-            background: linear-gradient(135deg, #FE5C4C 0%, #E04A3D 100%);
-            border-color: #FE5C4C;
+            background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+            border-color: var(--red);
             box-shadow: 0 5px 15px rgba(254, 92, 76, 0.4);
         }
 
+        /* ---- "Add resources" toggle ---- */
+
         .toggle-container {
-            text-align: center;
-            margin-top: 30px;
-            margin-bottom: 20px;
-            padding: 20px;
-            background: #f9f9f9;
-            border-radius: 10px;
             position: relative;
-        }
-
-        .toggle-wrapper {
-            display: inline-flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .toggle-row {
             display: flex;
+            justify-content: center;
             align-items: center;
             gap: 15px;
-        }
-
-        .toggle-explanation {
-            display: none;
-            position: absolute;
-            left: -280px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 250px;
+            margin: 30px 0 20px;
             padding: 20px;
-            background: #fff3cd;
-            border-right: 4px solid #ffc107;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            font-size: 0.9em;
-            color: #856404;
-            line-height: 1.5;
-            text-align: left;
-        }
-
-        .toggle-explanation.visible {
-            display: block;
-            animation: slideInLeft 0.5s ease forwards;
-        }
-
-        @keyframes slideInLeft {
-            from {
-                opacity: 0;
-                transform: translateY(-50%) translateX(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(-50%) translateX(0);
-            }
-        }
-
-        .toggle-explanation a {
-            color: #856404;
-            text-decoration: underline;
-            font-weight: 600;
-        }
-
-        .toggle-explanation a:hover {
-            color: #533f03;
+            background: var(--panel);
+            border-radius: 10px;
         }
 
         .toggle-label {
             font-weight: 600;
-            color: #555;
+            color: var(--text-muted);
             font-size: 1.1em;
         }
 
@@ -245,10 +203,10 @@
         }
 
         .toggle-switch.active {
-            background: linear-gradient(135deg, #0D9DDA 0%, #0A7DB8 100%);
+            background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
         }
 
-        .toggle-slider {
+        .toggle-knob {
             position: absolute;
             top: 3px;
             left: 3px;
@@ -260,9 +218,67 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
-        .toggle-switch.active .toggle-slider {
+        .toggle-switch.active .toggle-knob {
             transform: translateX(30px);
         }
+
+        /* ---- Side callouts (wide screens only) ---- */
+
+        .callout {
+            display: none;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 250px;
+            padding: 20px;
+            background: var(--callout-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            font-size: 0.9em;
+            color: var(--callout-text);
+            line-height: 1.5;
+            text-align: left;
+        }
+
+        .callout-left {
+            left: -280px;
+            border-right: 4px solid var(--callout-border);
+        }
+
+        .callout-right {
+            right: -280px;
+            border-left: 4px solid var(--callout-border);
+        }
+
+        .callout-left.visible {
+            display: block;
+            animation: slideInLeft 0.5s ease forwards;
+        }
+
+        .callout-right.visible {
+            display: block;
+            animation: slideInRight 0.5s ease forwards;
+        }
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateY(-50%) translateX(20px); }
+            to { opacity: 1; transform: translateY(-50%) translateX(0); }
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateY(-50%) translateX(-20px); }
+            to { opacity: 1; transform: translateY(-50%) translateX(0); }
+        }
+
+        .callout a {
+            color: var(--callout-text);
+            text-decoration: underline;
+            font-weight: 600;
+        }
+
+        .callout a:hover { color: #533f03; }
+
+        /* ---- Instructions ---- */
 
         .instructions {
             text-align: center;
@@ -270,75 +286,14 @@
             line-height: 1.6;
             margin-top: 30px;
             padding: 20px;
-            background: #f9f9f9;
+            background: var(--panel);
             border-radius: 10px;
         }
 
-        .team-callout {
-            display: none;
-            position: absolute;
-            right: -280px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 250px;
-            padding: 20px;
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            font-size: 0.9em;
-            color: #856404;
-            line-height: 1.5;
-        }
-
-        .team-callout.visible {
-            display: block;
-            animation: slideInRight 0.5s ease forwards;
-        }
-
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateY(-50%) translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(-50%) translateX(0);
-            }
-        }
-
-        .sliders-container {
-            position: relative;
-        }
-
-        .constraints-callout {
-            display: none;
-            position: absolute;
-            left: -280px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 250px;
-            padding: 20px;
-            background: #fff3cd;
-            border-right: 4px solid #ffc107;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            font-size: 0.9em;
-            color: #856404;
-            line-height: 1.5;
-        }
-
-        .constraints-callout.visible {
-            display: block;
-            animation: slideInLeft 0.5s ease forwards;
-        }
+        /* ---- Responsive ---- */
 
         @media (max-width: 1300px) {
-            .team-callout,
-            .toggle-explanation,
-            .constraints-callout {
-                display: none !important;
-            }
+            .callout.visible { display: none; }
         }
 
         @media (max-width: 768px) {
@@ -347,13 +302,9 @@
                 gap: 30px;
             }
 
-            .container {
-                padding: 20px;
-            }
+            .container { padding: 20px; }
 
-            h1 {
-                font-size: 1.5em;
-            }
+            h1 { font-size: 1.5em; }
         }
     </style>
 </head>
@@ -361,15 +312,15 @@
     <div class="container">
         <h1>Project Trade-offs</h1>
         <div class="points-display" id="pointsDisplay">Points Available: 3</div>
-        
+
         <div class="sliders-container">
-            <div class="constraints-callout" id="constraintsCallout">
+            <div class="callout callout-left" id="constraintsCallout">
                 Constraints are necessary when communicating the priorities of a project to the team. Not holding any values as fixed creates a lack of clarity on how leadership will respond to emerging changes.
             </div>
 
             <div class="slider-wrapper">
                 <div class="slider-label">Schedule</div>
-                <div class="slider" data-slider="2">
+                <div class="slider" data-slider="schedule">
                     <div class="slider-option" data-level="2">Fixed</div>
                     <div class="slider-option" data-level="1">Firm</div>
                     <div class="slider-option" data-level="0">Flex</div>
@@ -378,7 +329,7 @@
 
             <div class="slider-wrapper">
                 <div class="slider-label">Scope</div>
-                <div class="slider" data-slider="1">
+                <div class="slider" data-slider="scope">
                     <div class="slider-option" data-level="2">Fixed</div>
                     <div class="slider-option" data-level="1">Firm</div>
                     <div class="slider-option" data-level="0">Flex</div>
@@ -387,7 +338,7 @@
 
             <div class="slider-wrapper">
                 <div class="slider-label">Quality</div>
-                <div class="slider" data-slider="3">
+                <div class="slider" data-slider="quality">
                     <div class="slider-option" data-level="2">Fixed</div>
                     <div class="slider-option" data-level="1">Firm</div>
                     <div class="slider-option" data-level="0">Flex</div>
@@ -396,29 +347,25 @@
 
             <div class="slider-wrapper" id="teamSliderWrapper">
                 <div class="slider-label">Team</div>
-                <div class="slider team-slider" data-slider="4">
-                    <div class="slider-option selected" data-level="2">Steady</div>
+                <div class="slider team-slider" data-slider="team">
+                    <div class="slider-option" data-level="2">Steady</div>
                     <div class="slider-option" data-level="1">Stretched</div>
                     <div class="slider-option" data-level="0">Crunched</div>
                 </div>
             </div>
 
-            <div class="team-callout" id="teamCallout">
+            <div class="callout callout-right" id="teamCallout">
                 Additional capacity can be purchased by pushing the team. This can have long term consequences for the team's ability to deliver.
             </div>
         </div>
 
         <div class="toggle-container">
-            <div class="toggle-explanation" id="toggleExplanation">
-                Adding resources to the team can increase the team's capacity, but because of <a href="https://en.wikipedia.org/wiki/Brooks%27s_law" target="_blank">Brooks' Law</a>, it inevitably slows delivery down. Schedule can not be set as fixed while resources are added.
+            <div class="callout callout-left" id="toggleExplanation">
+                Adding resources to the team can increase the team's capacity, but because of <a href="https://en.wikipedia.org/wiki/Brooks%27s_law" target="_blank" rel="noopener">Brooks' Law</a>, it inevitably slows delivery down. Schedule can not be set as fixed while resources are added.
             </div>
-            <div class="toggle-wrapper">
-                <div class="toggle-row">
-                    <span class="toggle-label">Add resources to team</span>
-                    <div class="toggle-switch" id="resourceToggle">
-                        <div class="toggle-slider"></div>
-                    </div>
-                </div>
+            <span class="toggle-label">Add resources to team</span>
+            <div class="toggle-switch" id="resourceToggle">
+                <div class="toggle-knob"></div>
             </div>
         </div>
 
@@ -430,321 +377,189 @@
     </div>
 
     <script>
-        class SliderSystem {
-            constructor() {
-                this.points = 3;
-                this.resourceToggle = false; // Track if "Add resources to team" is on
-                this.resourceToggleEverActivated = false; // Track if toggle has ever been activated
-                this.teamSliderUnlocked = false; // Track if team slider has been revealed
-                this.sliderStates = {
-                    1: null, // All sliders start unselected
-                    2: null,
-                    3: null,
-                    4: 2  // Team slider starts at Steady (level 2)
-                };
-                this.init();
+        // Levels double as point costs: Flex = 0, Firm = 1, Fixed = 2.
+        // The Team slider reuses the same scale: Steady = 2, Stretched = 1, Crunched = 0.
+        const FLEX = 0;
+        const FIRM = 1;
+        const FIXED = 2;
+
+        const STARTING_POINTS = 3;
+        const CORE_SLIDERS = ['schedule', 'scope', 'quality'];
+
+        // When points must be clawed back, the highest slider drops first; ties go in this order.
+        const REDUCTION_ORDER = ['schedule', 'quality', 'scope'];
+
+        const state = {
+            points: STARTING_POINTS,
+            addResources: false,
+            teamUnlocked: false,
+            levels: {
+                schedule: null, // null = not chosen yet
+                scope: null,
+                quality: null,
+                team: FIXED,    // Steady
+            },
+        };
+
+        // ---- Rules ----
+
+        // Before the Team slider appears the player may overdraw by one point;
+        // that overdraft is what reveals it (see unlockTeamIfOverdrawn).
+        function minPoints() {
+            return state.teamUnlocked ? 0 : -1;
+        }
+
+        function coreLevels() {
+            return CORE_SLIDERS.map(key => state.levels[key]);
+        }
+
+        // Exactly two Firm and nothing Fixed: a third Firm would mean nothing is held fixed.
+        function isFirmLocked() {
+            const levels = coreLevels();
+            const firm = levels.filter(level => level === FIRM).length;
+            const fixed = levels.filter(level => level === FIXED).length;
+            return firm === 2 && fixed === 0;
+        }
+
+        // Points needed to move a slider to `level` (negative = points regained).
+        function costOf(key, level) {
+            return level - (state.levels[key] ?? 0);
+        }
+
+        function canAfford(key, level) {
+            return state.points - costOf(key, level) >= minPoints();
+        }
+
+        // Rule-based blocks, independent of points.
+        function isBlocked(key, level) {
+            if (key === 'team') return false;
+            if (key === 'schedule' && level === FIXED && state.addResources) return true;
+            const current = state.levels[key];
+            const raisingToFirm = level === FIRM && (current === null || current < FIRM);
+            return raisingToFirm && isFirmLocked();
+        }
+
+        // ---- State changes ----
+
+        function selectLevel(key, level) {
+            if (state.levels[key] === level) return;
+            if (isBlocked(key, level)) return;
+            if (!canAfford(key, level)) {
+                shakePoints();
+                return;
+            }
+            state.points -= costOf(key, level);
+            state.levels[key] = level;
+            update();
+        }
+
+        function toggleResources() {
+            state.addResources = !state.addResources;
+
+            if (state.addResources) {
+                state.points += 1;
+                // Schedule can't stay Fixed while resources are added.
+                if (state.levels.schedule === FIXED) {
+                    state.levels.schedule = FIRM;
+                    state.points += 1;
+                }
+            } else {
+                state.points -= 1;
+                reduceUntilAffordable();
             }
 
-            init() {
-                // Add event listeners for sliders
-                document.querySelectorAll('.slider').forEach(slider => {
-                    const sliderNum = slider.dataset.slider;
-                    slider.querySelectorAll('.slider-option').forEach(option => {
-                        option.addEventListener('click', () => {
-                            this.handleClick(sliderNum, parseInt(option.dataset.level));
-                        });
-                    });
-                });
+            update();
+        }
 
-                // Add event listener for resource toggle
-                const resourceToggle = document.getElementById('resourceToggle');
-                resourceToggle.addEventListener('click', () => {
-                    this.handleToggle();
-                });
-
-                this.updateDisplay();
-            }
-
-            handleToggle() {
-                this.resourceToggle = !this.resourceToggle;
-                
-                if (this.resourceToggle) {
-                    // Mark that the toggle has been activated
-                    this.resourceToggleEverActivated = true;
-                    
-                    // Turning toggle ON: add 1 point
-                    this.points += 1;
-                    
-                    // If Schedule is Fixed, move it to Firm
-                    if (this.sliderStates[2] === 2) {
-                        this.sliderStates[2] = 1;
-                        this.points += 1; // Regain the point from moving down
-                    }
-                } else {
-                    // Turning toggle OFF: remove 1 point
-                    this.points -= 1;
-                    
-                    // If points are below the minimum, automatically reduce the highest valued slider
-                    const minAllowedPoints = this.teamSliderUnlocked ? 0 : -1;
-                    while (this.points < minAllowedPoints) {
-                        // Find the slider with the highest value (treat null as 0)
-                        const scheduleValue = this.sliderStates[2] ?? 0;
-                        const scopeValue = this.sliderStates[1] ?? 0;
-                        const qualityValue = this.sliderStates[3] ?? 0;
-                        
-                        const maxValue = Math.max(scheduleValue, scopeValue, qualityValue);
-                        
-                        // If no slider has any value, break to prevent infinite loop
-                        if (maxValue === 0 || maxValue === null) {
-                            break;
-                        }
-                        
-                        // Prefer Schedule, then Quality, then Scope if there's a tie
-                        if (scheduleValue === maxValue) {
-                            this.sliderStates[2] -= 1;
-                            this.points += 1;
-                        } else if (qualityValue === maxValue) {
-                            this.sliderStates[3] -= 1;
-                            this.points += 1;
-                        } else {
-                            this.sliderStates[1] -= 1;
-                            this.points += 1;
-                        }
-                    }
-                }
-                
-                this.updateDisplay();
-            }
-
-            getAvailablePoints() {
-                // Base points + bonus from toggle
-                return this.points;
-            }
-
-            handleClick(sliderNum, targetLevel) {
-                const currentLevel = this.sliderStates[sliderNum];
-                
-                // If clicking the same level, do nothing
-                if (currentLevel === targetLevel) return;
-                
-                // Calculate level difference (treat null as starting from "below" Flex)
-                // When unselected (null), moving to any level costs that level value
-                const levelDiff = currentLevel === null ? targetLevel : targetLevel - currentLevel;
-
-                // Prevent clicking Schedule Fixed when resource toggle is on
-                if (sliderNum === '2' && targetLevel === 2 && this.resourceToggle) {
-                    return;
-                }
-
-                // Prevent clicking Firm if 2 sliders are already at Firm and no sliders are at Fixed
-                if (sliderNum !== '4' && targetLevel === 1 && (currentLevel === null || currentLevel < 1)) {
-                    const scheduleLevel = this.sliderStates[2];
-                    const scopeLevel = this.sliderStates[1];
-                    const qualityLevel = this.sliderStates[3];
-                    
-                    const firmCount = [scheduleLevel, scopeLevel, qualityLevel].filter(level => level === 1).length;
-                    const fixedCount = [scheduleLevel, scopeLevel, qualityLevel].filter(level => level === 2).length;
-                    
-                    if (firmCount === 2 && fixedCount === 0) {
-                        return;
-                    }
-                }
-
-                // Moving up requires points
-                if (levelDiff > 0) {
-                    // Check if we have enough points (allow going to -1 if team slider not unlocked yet)
-                    const minAllowedPoints = this.teamSliderUnlocked ? 0 : -1;
-                    if (this.points - levelDiff < minAllowedPoints) {
-                        // Not enough points, show feedback
-                        this.showNoPointsWarning();
-                        return;
-                    }
-                    this.points -= levelDiff;
-                }
-                // Moving down regains points
-                else {
-                    this.points += Math.abs(levelDiff);
-                }
-
-                // Update the slider state
-                this.sliderStates[sliderNum] = targetLevel;
-                this.updateDisplay();
-            }
-
-            updateDisplay() {
-                // Check for overdraft and unlock team slider BEFORE updating display
-                if (!this.teamSliderUnlocked && this.points <= -1) {
-                    this.teamSliderUnlocked = true;
-                    // Automatically set team to Stressed and bring points to 0
-                    this.sliderStates[4] = 1; // Set to Stressed
-                    this.points = 0; // Set points to 0 (team stress gives back the overdraft)
-                }
-
-                // Update points display
-                const pointsDisplay = document.getElementById('pointsDisplay');
-                pointsDisplay.textContent = `Points Available: ${this.points}`;
-                
-                // Remove all point status classes
-                pointsDisplay.classList.remove('no-points', 'zero-points');
-                
-                // Add appropriate class based on points
-                if (this.points === 0) {
-                    pointsDisplay.classList.add('zero-points');
-                } else if (this.points < 0) {
-                    pointsDisplay.classList.add('no-points');
-                }
-
-                // Update toggle UI
-                const resourceToggle = document.getElementById('resourceToggle');
-                if (this.resourceToggle) {
-                    resourceToggle.classList.add('active');
-                } else {
-                    resourceToggle.classList.remove('active');
-                }
-
-                // Show explanation text only while toggle is active
-                const toggleExplanation = document.getElementById('toggleExplanation');
-                if (this.resourceToggle) {
-                    toggleExplanation.classList.add('visible');
-                } else {
-                    toggleExplanation.classList.remove('visible');
-                }
-
-                // Show/hide team slider
-                const teamSliderWrapper = document.getElementById('teamSliderWrapper');
-                if (this.teamSliderUnlocked) {
-                    teamSliderWrapper.classList.add('visible');
-                }
-
-                // Show/hide team callout only when team is at Stressed or Burnout
-                const teamCallout = document.getElementById('teamCallout');
-                const teamLevel = this.sliderStates[4];
-                if (this.teamSliderUnlocked && (teamLevel === 1 || teamLevel === 0)) {
-                    teamCallout.classList.add('visible');
-                } else {
-                    teamCallout.classList.remove('visible');
-                }
-
-                // Count sliders at firm and fixed (excluding team slider)
-                const scheduleLevel = this.sliderStates[2];
-                const scopeLevel = this.sliderStates[1];
-                const qualityLevel = this.sliderStates[3];
-                
-                const firmCount = [scheduleLevel, scopeLevel, qualityLevel].filter(level => level === 1).length;
-                const fixedCount = [scheduleLevel, scopeLevel, qualityLevel].filter(level => level === 2).length;
-                
-                // Only show constraints callout and disable firm if exactly 2 sliders are at Firm (not Fixed)
-                // and no sliders are at Fixed
-                const shouldDisableFirm = firmCount === 2 && fixedCount === 0;
-                
-                const constraintsCallout = document.getElementById('constraintsCallout');
-                if (shouldDisableFirm) {
-                    constraintsCallout.classList.add('visible');
-                } else {
-                    constraintsCallout.classList.remove('visible');
-                }
-
-                // Auto-select remaining slider when two are selected (after team slider appears if needed)
-                const selectedCount = [scheduleLevel, scopeLevel, qualityLevel].filter(level => level !== null).length;
-                if (selectedCount === 2) {
-                    // Find which slider is unselected
-                    let unselectedSlider = null;
-                    if (scheduleLevel === null) unselectedSlider = 2;
-                    else if (scopeLevel === null) unselectedSlider = 1;
-                    else if (qualityLevel === null) unselectedSlider = 3;
-                    
-                    if (unselectedSlider !== null) {
-                        // Auto-select based on remaining points
-                        if (this.points >= 2) {
-                            this.sliderStates[unselectedSlider] = 2; // Fixed
-                            this.points -= 2;
-                        } else if (this.points >= 1) {
-                            this.sliderStates[unselectedSlider] = 1; // Firm
-                            this.points -= 1;
-                        } else {
-                            this.sliderStates[unselectedSlider] = 0; // Flex
-                        }
-                        
-                        // Update points display after auto-selection
-                        pointsDisplay.textContent = `Points Available: ${this.points}`;
-                        pointsDisplay.classList.remove('no-points', 'zero-points');
-                        if (this.points === 0) {
-                            pointsDisplay.classList.add('zero-points');
-                        } else if (this.points < 0) {
-                            pointsDisplay.classList.add('no-points');
-                        }
-                    }
-                }
-
-                // Update each slider
-                document.querySelectorAll('.slider').forEach(slider => {
-                    const sliderNum = slider.dataset.slider;
-                    const currentLevel = this.sliderStates[sliderNum];
-
-                    slider.querySelectorAll('.slider-option').forEach(option => {
-                        const optionLevel = parseInt(option.dataset.level);
-                        
-                        // Remove all classes
-                        option.classList.remove('selected', 'disabled');
-
-                        // Mark selected option
-                        if (optionLevel === currentLevel) {
-                            option.classList.add('selected');
-                        }
-
-                        // For team slider (slider 4), also disable options that require more points
-                        if (sliderNum === '4') {
-                            // Calculate points needed for team slider (moving up costs points)
-                            const pointsNeeded = optionLevel - currentLevel;
-                            const minAllowedPoints = this.teamSliderUnlocked ? 0 : -1;
-                            if (this.points - pointsNeeded < minAllowedPoints) {
-                                option.classList.add('disabled');
-                            }
-                        } else {
-                            // For Schedule slider (slider 2), disable Fixed when resource toggle is on
-                            if (sliderNum === '2' && optionLevel === 2 && this.resourceToggle) {
-                                option.classList.add('disabled');
-                            }
-                            
-                            // If 2 sliders are at firm or higher, disable firm for remaining sliders
-                            if (shouldDisableFirm && optionLevel === 1 && (currentLevel === null || currentLevel < 1)) {
-                                option.classList.add('disabled');
-                            }
-                            
-                            // For other sliders, disable options that require more points than available
-                            // When unselected (null), moving to any level costs that level value
-                            const pointsNeeded = currentLevel === null ? optionLevel : optionLevel - currentLevel;
-                            const minAllowedPoints = this.teamSliderUnlocked ? 0 : -1;
-                            if (this.points - pointsNeeded < minAllowedPoints) {
-                                option.classList.add('disabled');
-                            }
-                        }
-                    });
-                });
-            }
-
-            showNoPointsWarning() {
-                const pointsDisplay = document.getElementById('pointsDisplay');
-                pointsDisplay.style.animation = 'none';
-                setTimeout(() => {
-                    pointsDisplay.style.animation = 'shake 0.5s';
-                }, 10);
+        // Drop the highest core slider one level at a time until points are back in range.
+        function reduceUntilAffordable() {
+            while (state.points < minPoints()) {
+                const highest = Math.max(...coreLevels().map(level => level ?? 0));
+                if (highest === 0) break;
+                const key = REDUCTION_ORDER.find(k => (state.levels[k] ?? 0) === highest);
+                state.levels[key] -= 1;
+                state.points += 1;
             }
         }
 
-        // Add shake animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes shake {
-                0%, 100% { transform: translateX(0); }
-                25% { transform: translateX(-10px); }
-                75% { transform: translateX(10px); }
-            }
-        `;
-        document.head.appendChild(style);
+        // Overdrawing reveals the Team slider, which pays back the overdraft by stretching the team.
+        function unlockTeamIfOverdrawn() {
+            if (state.teamUnlocked || state.points > -1) return;
+            state.teamUnlocked = true;
+            state.levels.team = FIRM; // Stretched
+            state.points = 0;
+        }
 
-        // Initialize the slider system
-        const sliderSystem = new SliderSystem();
+        // Once two core sliders are chosen, set the last one to the best level still affordable.
+        function autoFillLastSlider() {
+            const unset = CORE_SLIDERS.filter(key => state.levels[key] === null);
+            if (unset.length !== 1) return;
+            const level = state.points >= FIXED ? FIXED : state.points >= FIRM ? FIRM : FLEX;
+            state.levels[unset[0]] = level;
+            state.points -= level;
+        }
+
+        function update() {
+            unlockTeamIfOverdrawn();
+            // Known quirk kept from the original: the constraints callout reflects the state
+            // *before* the auto-fill, so it can stay up after the fill makes all three Firm.
+            const showConstraints = isFirmLocked();
+            autoFillLastSlider();
+            render(showConstraints);
+        }
+
+        // ---- Rendering ----
+
+        const els = {
+            points: document.getElementById('pointsDisplay'),
+            toggle: document.getElementById('resourceToggle'),
+            toggleExplanation: document.getElementById('toggleExplanation'),
+            teamWrapper: document.getElementById('teamSliderWrapper'),
+            teamCallout: document.getElementById('teamCallout'),
+            constraintsCallout: document.getElementById('constraintsCallout'),
+            sliders: document.querySelectorAll('.slider'),
+        };
+
+        function render(showConstraints = isFirmLocked()) {
+            els.points.textContent = `Points Available: ${state.points}`;
+            els.points.classList.toggle('zero-points', state.points === 0);
+            els.points.classList.toggle('no-points', state.points < 0);
+
+            els.toggle.classList.toggle('active', state.addResources);
+            els.toggleExplanation.classList.toggle('visible', state.addResources);
+
+            els.teamWrapper.classList.toggle('visible', state.teamUnlocked);
+            els.teamCallout.classList.toggle('visible', state.teamUnlocked && state.levels.team < FIXED);
+            els.constraintsCallout.classList.toggle('visible', showConstraints);
+
+            els.sliders.forEach(slider => {
+                const key = slider.dataset.slider;
+                slider.querySelectorAll('.slider-option').forEach(option => {
+                    const level = Number(option.dataset.level);
+                    option.classList.toggle('selected', state.levels[key] === level);
+                    option.classList.toggle('disabled', isBlocked(key, level) || !canAfford(key, level));
+                });
+            });
+        }
+
+        function shakePoints() {
+            els.points.classList.remove('shake');
+            void els.points.offsetWidth; // restart the animation
+            els.points.classList.add('shake');
+        }
+
+        // ---- Wiring ----
+
+        els.sliders.forEach(slider => {
+            slider.addEventListener('click', event => {
+                const option = event.target.closest('.slider-option');
+                if (option) selectLevel(slider.dataset.slider, Number(option.dataset.level));
+            });
+        });
+
+        els.toggle.addEventListener('click', toggleResources);
+
+        render();
     </script>
 </body>
 </html>
