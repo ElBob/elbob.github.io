@@ -284,6 +284,8 @@
 
             .callout-right { right: -280px; }
 
+            .dice-box .callout { margin-top: 0; }
+
             .callout-left.visible { animation: slideInLeft 0.5s ease forwards; }
             .callout-right.visible { animation: slideInRight 0.5s ease forwards; }
         }
@@ -332,7 +334,12 @@
 
         /* ---- Dice box: appears once every point is spent ---- */
 
-        .dice-box { display: none; }
+        .dice-box {
+            display: none;
+            position: relative; /* anchors the side callout on wide screens */
+        }
+
+        .dice-box .callout { margin-top: 25px; }
 
         .dice-box.visible {
             display: block;
@@ -621,6 +628,9 @@
                 <div class="dice-result"></div>
             </div>
         </div>
+        <div class="callout callout-left" id="valuesCallout" role="note" aria-live="polite">
+            By clearly communicating values with the team upfront, you empower them to make hundreds of small decisions that are aligned with your goals. This gives the project the greatest chance of achieving your priorities throughout execution.
+        </div>
         <div class="sr-only" id="diceStatus" aria-live="polite"></div>
     </section>
 
@@ -792,6 +802,7 @@
             diceRow: document.getElementById('diceRow'),
             diceColumns: document.querySelectorAll('.dice-column'),
             diceStatus: document.getElementById('diceStatus'),
+            valuesCallout: document.getElementById('valuesCallout'),
         };
 
         function render() {
@@ -877,6 +888,7 @@
 
             const appearing = !els.diceBox.classList.contains('visible');
             els.diceBox.classList.add('visible');
+            els.valuesCallout.classList.add('visible');
             alignDice();
             rollAll();
             if (appearing) {
@@ -888,6 +900,7 @@
             stopRolling();
             rolledFor = null;
             els.diceBox.classList.remove('visible');
+            els.valuesCallout.classList.remove('visible');
             els.diceRow.classList.remove('aligned');
             els.diceRow.style.gridTemplateColumns = '';
             els.diceStatus.textContent = '';
