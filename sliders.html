@@ -351,25 +351,27 @@
             margin-bottom: 25px;
         }
 
-        /* Default: three equal columns. When the sliders sit in one row, JS (alignDice)
-           sizes and offsets each column to sit exactly under its slider. */
+        /* Every column shares the same five rows (title, roll type, dice, label, score) via
+           subgrid, so the dice clusters and the scores line up across columns.
+           Default: three equal columns. When the sliders sit in one row, JS (alignDice)
+           sets the column tracks so each column sits exactly under its slider. */
         .dice-row {
-            display: flex;
-            gap: 12px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-rows: repeat(5, auto);
+            column-gap: 12px;
         }
 
-        .dice-row.aligned { gap: 0; }
+        .dice-row.aligned { column-gap: 0; }
 
         .dice-column {
-            flex: 1;
+            display: grid;
+            grid-row: span 5;
+            grid-template-rows: subgrid;
+            justify-items: center;
             min-width: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             text-align: center;
         }
-
-        .dice-row.aligned .dice-column { flex: none; }
 
         .dice-title {
             font-size: 1.2em;
@@ -384,6 +386,7 @@
         }
 
         .dice-set {
+            align-self: center; /* centred in the band set by the tallest cluster */
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
@@ -886,9 +889,10 @@
             rolledFor = null;
             els.diceBox.classList.remove('visible');
             els.diceRow.classList.remove('aligned');
+            els.diceRow.style.gridTemplateColumns = '';
             els.diceStatus.textContent = '';
             els.diceColumns.forEach(column => {
-                column.removeAttribute('style');
+                column.style.gridColumn = '';
                 column.querySelector('.dice-set').replaceChildren();
                 column.querySelectorAll('.dice-mode, .dice-result-label, .dice-result').forEach(el => { el.textContent = ''; });
                 column.querySelector('.dice-result').classList.remove('final');
@@ -974,11 +978,16 @@
             const inOneRow = rects[0].width > 0 && rects.every(r => Math.abs(r.top - rects[0].top) < 1);
 
             els.diceRow.classList.toggle('aligned', inOneRow);
+            // Tracks alternate spacer / column: [gap before schedule, schedule, gap, scope, gap, quality].
+            const tracks = [];
             let x = els.diceRow.getBoundingClientRect().left;
+            rects.forEach(r => {
+                tracks.push(Math.max(0, r.left - x), r.width);
+                x = r.right;
+            });
+            els.diceRow.style.gridTemplateColumns = inOneRow ? tracks.map(t => `${t}px`).join(' ') : '';
             els.diceColumns.forEach((column, i) => {
-                column.style.marginLeft = inOneRow ? `${rects[i].left - x}px` : '';
-                column.style.width = inOneRow ? `${rects[i].width}px` : '';
-                x = rects[i].right;
+                column.style.gridColumn = inOneRow ? String(2 * i + 2) : '';
             });
         }
 
