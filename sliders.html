@@ -33,12 +33,15 @@
             background: linear-gradient(135deg, #90D0FE 0%, #70C0EE 100%);
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
+            gap: 20px;
             padding: 20px;
         }
 
-        .container {
+        .container,
+        .dice-box {
             background: white;
             border-radius: 20px;
             padding: 40px;
@@ -327,6 +330,160 @@
             color: white;
         }
 
+        /* ---- Dice box: appears once every point is spent ---- */
+
+        .dice-box { display: none; }
+
+        .dice-box.visible {
+            display: block;
+            animation: diceBoxIn 0.4s ease forwards;
+        }
+
+        @keyframes diceBoxIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dice-box h2 {
+            text-align: center;
+            color: var(--text);
+            font-size: 1.5em;
+            margin-bottom: 25px;
+        }
+
+        /* Default: three equal columns. When the sliders sit in one row, JS (alignDice)
+           sizes and offsets each column to sit exactly under its slider. */
+        .dice-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .dice-row.aligned { gap: 0; }
+
+        .dice-column {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .dice-row.aligned .dice-column { flex: none; }
+
+        .dice-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--text-muted);
+        }
+
+        .dice-mode {
+            font-size: 0.85em;
+            color: #888;
+            margin: 4px 0 15px;
+        }
+
+        .dice-set {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            max-width: 120px; /* two dice per row, so four dice make a 2x2 block */
+        }
+
+        .die {
+            width: 52px;
+            height: 52px;
+            transition: opacity 0.3s ease;
+        }
+
+        .die svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .die-body { fill: white; }
+        .die-face { fill: #eaf6fd; }
+
+        .die-body,
+        .die-face,
+        .die-edges {
+            stroke: var(--blue);
+            stroke-width: 3;
+            stroke-linejoin: round;
+        }
+
+        .die-edges { fill: none; stroke-width: 2; }
+
+        .die text {
+            font-family: inherit;
+            font-size: 26px;
+            font-weight: bold;
+            fill: var(--text);
+        }
+
+        .die.rolling svg { animation: tumble 0.45s linear infinite; }
+        .die.landed svg { animation: land 0.3s ease-out; }
+
+        @keyframes tumble {
+            0% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-6px) rotate(90deg); }
+            50% { transform: translateY(0) rotate(180deg); }
+            75% { transform: translateY(-6px) rotate(270deg); }
+            100% { transform: translateY(0) rotate(360deg); }
+        }
+
+        @keyframes land {
+            0% { transform: scale(1.25); }
+            60% { transform: scale(0.92); }
+            100% { transform: scale(1); }
+        }
+
+        .die.best .die-body { fill: var(--blue); }
+        .die.best .die-face { fill: var(--blue-dark); }
+        .die.best .die-body,
+        .die.best .die-face,
+        .die.best .die-edges { stroke: var(--blue-dark); }
+        .die.best text { fill: white; }
+        .die.dim { opacity: 0.35; }
+
+        .dice-result-label {
+            margin-top: 15px;
+            font-size: 0.8em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .dice-result {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #bbb;
+            min-height: 1.2em;
+        }
+
+        .dice-result.final {
+            color: var(--blue);
+            animation: land 0.3s ease-out;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .dice-box.visible,
+            .die.landed svg,
+            .dice-result.final { animation: none; }
+        }
+
         /* ---- Instructions ---- */
 
         .instructions {
@@ -347,7 +504,18 @@
                 gap: 30px;
             }
 
-            .container { padding: 20px; }
+            .container,
+            .dice-box { padding: 20px; }
+
+            .die {
+                width: 40px;
+                height: 40px;
+            }
+
+            .dice-set {
+                gap: 6px;
+                max-width: 86px;
+            }
 
             h1 { font-size: 1.5em; }
         }
@@ -424,6 +592,34 @@
             Moving a value down one level regains 1 point.
         </div>
     </div>
+
+    <section class="dice-box" id="diceBox" aria-labelledby="diceTitle">
+        <h2 id="diceTitle">Dice Rolls</h2>
+        <div class="dice-row" id="diceRow">
+            <div class="dice-column" data-slider="schedule">
+                <div class="dice-title">Schedule</div>
+                <div class="dice-mode"></div>
+                <div class="dice-set"></div>
+                <div class="dice-result-label"></div>
+                <div class="dice-result"></div>
+            </div>
+            <div class="dice-column" data-slider="scope">
+                <div class="dice-title">Scope</div>
+                <div class="dice-mode"></div>
+                <div class="dice-set"></div>
+                <div class="dice-result-label"></div>
+                <div class="dice-result"></div>
+            </div>
+            <div class="dice-column" data-slider="quality">
+                <div class="dice-title">Quality</div>
+                <div class="dice-mode"></div>
+                <div class="dice-set"></div>
+                <div class="dice-result-label"></div>
+                <div class="dice-result"></div>
+            </div>
+        </div>
+        <div class="sr-only" id="diceStatus" aria-live="polite"></div>
+    </section>
 
     <script>
         // Levels double as point costs: Flex = 0, Firm = 1, Fixed = 2.
@@ -589,6 +785,10 @@
             constraintsCallout: document.getElementById('constraintsCallout'),
             sliders: document.querySelectorAll('.slider'),
             reset: document.getElementById('resetButton'),
+            diceBox: document.getElementById('diceBox'),
+            diceRow: document.getElementById('diceRow'),
+            diceColumns: document.querySelectorAll('.dice-column'),
+            diceStatus: document.getElementById('diceStatus'),
         };
 
         function render() {
@@ -617,12 +817,169 @@
                     option.setAttribute('aria-disabled', String(disabled));
                 });
             });
+
+            updateDice();
         }
 
         function shakePoints() {
             els.points.classList.remove('shake');
             void els.points.offsetWidth; // restart the animation
             els.points.classList.add('shake');
+        }
+
+        // ---- Dice ----
+        // Once every point is spent, each core category rolls a d20. The more firmly it's held,
+        // the more dice it rolls, keeping the highest: Fixed = 4 (quadruple advantage),
+        // Firm = 2 (advantage), Flex = 1 (flat).
+
+        const ROLL_MODES = {
+            [FIXED]: { dice: 4, name: 'Quadruple advantage', resultLabel: 'Highest' },
+            [FIRM]: { dice: 2, name: 'Advantage', resultLabel: 'Highest' },
+            [FLEX]: { dice: 1, name: 'Flat roll', resultLabel: 'Roll' },
+        };
+
+        const DIE_SVG = `
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+                <polygon class="die-body" points="50,3 91,27 91,73 50,97 9,73 9,27"/>
+                <path class="die-edges" d="M50,3 L50,22 M9,27 L50,22 M91,27 L50,22 M9,27 L22,70 M91,27 L78,70 M9,73 L22,70 M91,73 L78,70 M50,97 L22,70 M50,97 L78,70"/>
+                <polygon class="die-face" points="50,22 78,70 22,70"/>
+                <text x="50" y="55" text-anchor="middle" dominant-baseline="central"></text>
+            </svg>`;
+
+        let rolledFor = null;   // core levels the dice on screen were rolled for
+        let cancelRolls = [];   // stop functions for running animations
+
+        function prefersReducedMotion() {
+            return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+        }
+
+        function pointsSpent() {
+            return state.points === 0 && coreLevels().every(level => level !== null);
+        }
+
+        function rollD20() {
+            return 1 + Math.floor(Math.random() * 20);
+        }
+
+        // Show and roll when points become fully spent, re-roll if the levels change while
+        // they stay spent, and hide otherwise.
+        function updateDice() {
+            if (!pointsSpent()) {
+                if (rolledFor !== null) clearDice();
+                return;
+            }
+            const key = coreLevels().join();
+            if (key === rolledFor) return;
+            rolledFor = key;
+
+            const appearing = !els.diceBox.classList.contains('visible');
+            els.diceBox.classList.add('visible');
+            alignDice();
+            rollAll();
+            if (appearing) {
+                els.diceBox.scrollIntoView?.({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'nearest' });
+            }
+        }
+
+        function clearDice() {
+            stopRolling();
+            rolledFor = null;
+            els.diceBox.classList.remove('visible');
+            els.diceRow.classList.remove('aligned');
+            els.diceStatus.textContent = '';
+            els.diceColumns.forEach(column => {
+                column.removeAttribute('style');
+                column.querySelector('.dice-set').replaceChildren();
+                column.querySelectorAll('.dice-mode, .dice-result-label, .dice-result').forEach(el => { el.textContent = ''; });
+                column.querySelector('.dice-result').classList.remove('final');
+            });
+        }
+
+        function stopRolling() {
+            cancelRolls.forEach(cancel => cancel());
+            cancelRolls = [];
+        }
+
+        function makeDie() {
+            const die = document.createElement('div');
+            die.className = 'die';
+            die.innerHTML = DIE_SVG;
+            return die;
+        }
+
+        function setFace(die, value) {
+            die.querySelector('text').textContent = value;
+        }
+
+        function rollAll() {
+            stopRolling();
+            els.diceStatus.textContent = '';
+            const animate = !prefersReducedMotion();
+            const results = [];
+            let columnsPending = CORE_SLIDERS.length;
+
+            els.diceColumns.forEach((column, columnIndex) => {
+                const key = column.dataset.slider;
+                const mode = ROLL_MODES[state.levels[key]];
+                const rolls = Array.from({ length: mode.dice }, rollD20);
+                const dice = rolls.map(makeDie);
+                const result = column.querySelector('.dice-result');
+
+                column.querySelector('.dice-mode').textContent = mode.name;
+                column.querySelector('.dice-result-label').textContent = mode.resultLabel;
+                column.querySelector('.dice-set').replaceChildren(...dice);
+                result.textContent = '…';
+                result.classList.remove('final');
+
+                const finishColumn = () => {
+                    const best = Math.max(...rolls);
+                    const bestIndex = rolls.indexOf(best);
+                    dice.forEach((die, i) => die.classList.add(i === bestIndex ? 'best' : 'dim'));
+                    result.textContent = best;
+                    result.classList.add('final');
+                    results[columnIndex] = `${column.querySelector('.dice-title').textContent}, ${mode.name.toLowerCase()}: ${rolls.join(', ')}. ${mode.resultLabel} ${best}.`;
+                    if (--columnsPending === 0) els.diceStatus.textContent = results.join(' ');
+                };
+
+                if (!animate) {
+                    dice.forEach((die, i) => setFace(die, rolls[i]));
+                    finishColumn();
+                    return;
+                }
+
+                // Each die tumbles through random faces, then lands; columns and dice land in a stagger.
+                let dicePending = dice.length;
+                dice.forEach((die, i) => {
+                    setFace(die, rollD20());
+                    die.classList.add('rolling');
+                    const tumble = setInterval(() => setFace(die, rollD20()), 70);
+                    const land = setTimeout(() => {
+                        clearInterval(tumble);
+                        die.classList.replace('rolling', 'landed');
+                        setFace(die, rolls[i]);
+                        if (--dicePending === 0) finishColumn();
+                    }, 800 + columnIndex * 250 + i * 150);
+                    cancelRolls.push(() => { clearInterval(tumble); clearTimeout(land); });
+                });
+            });
+        }
+
+        // Line each dice column up under its slider (which moves when the Team slider appears).
+        // If the sliders are stacked (narrow screens), fall back to three equal columns.
+        function alignDice() {
+            if (!els.diceBox.classList.contains('visible')) return;
+            const rects = [...els.diceColumns].map(column =>
+                document.querySelector(`.slider[data-slider="${column.dataset.slider}"]`)
+                    .closest('.slider-wrapper').getBoundingClientRect());
+            const inOneRow = rects[0].width > 0 && rects.every(r => Math.abs(r.top - rects[0].top) < 1);
+
+            els.diceRow.classList.toggle('aligned', inOneRow);
+            let x = els.diceRow.getBoundingClientRect().left;
+            els.diceColumns.forEach((column, i) => {
+                column.style.marginLeft = inOneRow ? `${rects[i].left - x}px` : '';
+                column.style.width = inOneRow ? `${rects[i].width}px` : '';
+                x = rects[i].right;
+            });
         }
 
         // ---- Wiring ----
@@ -636,6 +993,7 @@
 
         els.toggle.addEventListener('click', toggleResources);
         els.reset.addEventListener('click', reset);
+        window.addEventListener('resize', alignDice);
 
         render();
     </script>
