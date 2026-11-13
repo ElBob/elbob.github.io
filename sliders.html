@@ -79,8 +79,9 @@
         .sliders-container {
             position: relative;
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-around;
-            gap: 40px;
+            gap: 20px 40px;
             margin-bottom: 30px;
         }
 
@@ -117,8 +118,17 @@
             border: 3px solid #ddd;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-family: inherit;
             font-weight: 600;
             font-size: 1.1em;
+            color: inherit;
+        }
+
+        .slider-option:focus-visible,
+        .toggle-switch:focus-visible,
+        .reset-button:focus-visible {
+            outline: 3px solid var(--blue-dark);
+            outline-offset: 3px;
         }
 
         .slider-option:hover:not(.selected):not(.disabled) {
@@ -177,6 +187,7 @@
         .toggle-container {
             position: relative;
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
             align-items: center;
             gap: 15px;
@@ -196,6 +207,8 @@
             position: relative;
             width: 60px;
             height: 30px;
+            padding: 0;
+            border: none;
             background: #ccc;
             border-radius: 30px;
             cursor: pointer;
@@ -222,42 +235,54 @@
             transform: translateX(30px);
         }
 
-        /* ---- Side callouts (wide screens only) ---- */
+        /* ---- Callouts ----
+           Narrow screens: a full-width note under the related section.
+           Wide screens (room for 250px either side of the card): a note beside it. */
 
         .callout {
             display: none;
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 250px;
-            padding: 20px;
+            flex-basis: 100%;
+            order: 10; /* after the sliders / toggle */
+            padding: 15px 20px;
             background: var(--callout-bg);
+            border-left: 4px solid var(--callout-border);
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             font-size: 0.9em;
             color: var(--callout-text);
             line-height: 1.5;
             text-align: left;
         }
 
-        .callout-left {
-            left: -280px;
-            border-right: 4px solid var(--callout-border);
-        }
-
-        .callout-right {
-            right: -280px;
-            border-left: 4px solid var(--callout-border);
-        }
-
-        .callout-left.visible {
+        .callout.visible {
             display: block;
-            animation: slideInLeft 0.5s ease forwards;
+            animation: calloutFade 0.5s ease forwards;
         }
 
-        .callout-right.visible {
-            display: block;
-            animation: slideInRight 0.5s ease forwards;
+        @keyframes calloutFade {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (min-width: 1540px) {
+            .callout {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 250px;
+                padding: 20px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+
+            .callout-left {
+                left: -280px;
+                border-left: none;
+                border-right: 4px solid var(--callout-border);
+            }
+
+            .callout-right { right: -280px; }
+
+            .callout-left.visible { animation: slideInLeft 0.5s ease forwards; }
+            .callout-right.visible { animation: slideInRight 0.5s ease forwards; }
         }
 
         @keyframes slideInLeft {
@@ -278,6 +303,30 @@
 
         .callout a:hover { color: #533f03; }
 
+        /* ---- Reset ---- */
+
+        .actions {
+            text-align: center;
+        }
+
+        .reset-button {
+            padding: 10px 28px;
+            font-family: inherit;
+            font-size: 1em;
+            font-weight: 600;
+            color: var(--blue-dark);
+            background: white;
+            border: 2px solid var(--blue);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .reset-button:hover {
+            background: var(--blue);
+            color: white;
+        }
+
         /* ---- Instructions ---- */
 
         .instructions {
@@ -291,10 +340,6 @@
         }
 
         /* ---- Responsive ---- */
-
-        @media (max-width: 1300px) {
-            .callout.visible { display: none; }
-        }
 
         @media (max-width: 768px) {
             .sliders-container {
@@ -311,62 +356,66 @@
 <body>
     <div class="container">
         <h1>Project Trade-offs</h1>
-        <div class="points-display" id="pointsDisplay">Points Available: 3</div>
+        <div class="points-display" id="pointsDisplay" aria-live="polite">Points Available: 3</div>
 
         <div class="sliders-container">
-            <div class="callout callout-left" id="constraintsCallout">
+            <div class="callout callout-left" id="constraintsCallout" role="note" aria-live="polite">
                 Constraints are necessary when communicating the priorities of a project to the team. Not holding any values as fixed creates a lack of clarity on how leadership will respond to emerging changes.
             </div>
 
             <div class="slider-wrapper">
-                <div class="slider-label">Schedule</div>
-                <div class="slider" data-slider="schedule">
-                    <div class="slider-option" data-level="2">Fixed</div>
-                    <div class="slider-option" data-level="1">Firm</div>
-                    <div class="slider-option" data-level="0">Flex</div>
+                <div class="slider-label" id="scheduleLabel">Schedule</div>
+                <div class="slider" data-slider="schedule" role="group" aria-labelledby="scheduleLabel">
+                    <button type="button" class="slider-option" data-level="2" aria-pressed="false">Fixed</button>
+                    <button type="button" class="slider-option" data-level="1" aria-pressed="false">Firm</button>
+                    <button type="button" class="slider-option" data-level="0" aria-pressed="false">Flex</button>
                 </div>
             </div>
 
             <div class="slider-wrapper">
-                <div class="slider-label">Scope</div>
-                <div class="slider" data-slider="scope">
-                    <div class="slider-option" data-level="2">Fixed</div>
-                    <div class="slider-option" data-level="1">Firm</div>
-                    <div class="slider-option" data-level="0">Flex</div>
+                <div class="slider-label" id="scopeLabel">Scope</div>
+                <div class="slider" data-slider="scope" role="group" aria-labelledby="scopeLabel">
+                    <button type="button" class="slider-option" data-level="2" aria-pressed="false">Fixed</button>
+                    <button type="button" class="slider-option" data-level="1" aria-pressed="false">Firm</button>
+                    <button type="button" class="slider-option" data-level="0" aria-pressed="false">Flex</button>
                 </div>
             </div>
 
             <div class="slider-wrapper">
-                <div class="slider-label">Quality</div>
-                <div class="slider" data-slider="quality">
-                    <div class="slider-option" data-level="2">Fixed</div>
-                    <div class="slider-option" data-level="1">Firm</div>
-                    <div class="slider-option" data-level="0">Flex</div>
+                <div class="slider-label" id="qualityLabel">Quality</div>
+                <div class="slider" data-slider="quality" role="group" aria-labelledby="qualityLabel">
+                    <button type="button" class="slider-option" data-level="2" aria-pressed="false">Fixed</button>
+                    <button type="button" class="slider-option" data-level="1" aria-pressed="false">Firm</button>
+                    <button type="button" class="slider-option" data-level="0" aria-pressed="false">Flex</button>
                 </div>
             </div>
 
             <div class="slider-wrapper" id="teamSliderWrapper">
-                <div class="slider-label">Team</div>
-                <div class="slider team-slider" data-slider="team">
-                    <div class="slider-option" data-level="2">Steady</div>
-                    <div class="slider-option" data-level="1">Stretched</div>
-                    <div class="slider-option" data-level="0">Crunched</div>
+                <div class="slider-label" id="teamLabel">Team</div>
+                <div class="slider team-slider" data-slider="team" role="group" aria-labelledby="teamLabel">
+                    <button type="button" class="slider-option" data-level="2" aria-pressed="false">Steady</button>
+                    <button type="button" class="slider-option" data-level="1" aria-pressed="false">Stretched</button>
+                    <button type="button" class="slider-option" data-level="0" aria-pressed="false">Crunched</button>
                 </div>
             </div>
 
-            <div class="callout callout-right" id="teamCallout">
+            <div class="callout callout-right" id="teamCallout" role="note" aria-live="polite">
                 Additional capacity can be purchased by pushing the team. This can have long term consequences for the team's ability to deliver.
             </div>
         </div>
 
         <div class="toggle-container">
-            <div class="callout callout-left" id="toggleExplanation">
+            <div class="callout callout-left" id="toggleExplanation" role="note" aria-live="polite">
                 Adding resources to the team can increase the team's capacity, but because of <a href="https://en.wikipedia.org/wiki/Brooks%27s_law" target="_blank" rel="noopener">Brooks' Law</a>, it inevitably slows delivery down. Schedule can not be set as fixed while resources are added.
             </div>
-            <span class="toggle-label">Add resources to team</span>
-            <div class="toggle-switch" id="resourceToggle">
-                <div class="toggle-knob"></div>
-            </div>
+            <span class="toggle-label" id="resourceLabel">Add resources to team</span>
+            <button type="button" class="toggle-switch" id="resourceToggle" role="switch" aria-checked="false" aria-labelledby="resourceLabel">
+                <span class="toggle-knob"></span>
+            </button>
+        </div>
+
+        <div class="actions">
+            <button type="button" class="reset-button" id="resetButton">Reset</button>
         </div>
 
         <div class="instructions">
@@ -389,17 +438,21 @@
         // When points must be clawed back, the highest slider drops first; ties go in this order.
         const REDUCTION_ORDER = ['schedule', 'quality', 'scope'];
 
-        const state = {
-            points: STARTING_POINTS,
-            addResources: false,
-            teamUnlocked: false,
-            levels: {
-                schedule: null, // null = not chosen yet
-                scope: null,
-                quality: null,
-                team: FIXED,    // Steady
-            },
-        };
+        function initialState() {
+            return {
+                points: STARTING_POINTS,
+                addResources: false,
+                teamUnlocked: false,
+                levels: {
+                    schedule: null, // null = not chosen yet
+                    scope: null,
+                    quality: null,
+                    team: FIXED,    // Steady
+                },
+            };
+        }
+
+        let state = initialState();
 
         // ---- Rules ----
 
@@ -421,6 +474,11 @@
             return firm === 2 && fixed === 0;
         }
 
+        // True if setting `key` to Firm would leave all three core sliders at Firm.
+        function wouldMakeAllFirm(key) {
+            return CORE_SLIDERS.every(k => k === key || state.levels[k] === FIRM);
+        }
+
         // Points needed to move a slider to `level` (negative = points regained).
         function costOf(key, level) {
             return level - (state.levels[key] ?? 0);
@@ -434,9 +492,15 @@
         function isBlocked(key, level) {
             if (key === 'team') return false;
             if (key === 'schedule' && level === FIXED && state.addResources) return true;
-            const current = state.levels[key];
-            const raisingToFirm = level === FIRM && (current === null || current < FIRM);
-            return raisingToFirm && isFirmLocked();
+            return level === FIRM && wouldMakeAllFirm(key);
+        }
+
+        // Lower a core slider one step. If that would make all three Firm, go straight to Flex.
+        function lowerOneStep(key) {
+            let level = state.levels[key] - 1;
+            if (level === FIRM && wouldMakeAllFirm(key)) level = FLEX;
+            state.points -= costOf(key, level);
+            state.levels[key] = level;
         }
 
         // ---- State changes ----
@@ -459,10 +523,7 @@
             if (state.addResources) {
                 state.points += 1;
                 // Schedule can't stay Fixed while resources are added.
-                if (state.levels.schedule === FIXED) {
-                    state.levels.schedule = FIRM;
-                    state.points += 1;
-                }
+                if (state.levels.schedule === FIXED) lowerOneStep('schedule');
             } else {
                 state.points -= 1;
                 reduceUntilAffordable();
@@ -471,14 +532,19 @@
             update();
         }
 
-        // Drop the highest core slider one level at a time until points are back in range.
+        // Claw points back until they're in range: drop the highest core slider a step at a time,
+        // and only push the team harder if the core sliders have nothing left to give.
         function reduceUntilAffordable() {
             while (state.points < minPoints()) {
                 const highest = Math.max(...coreLevels().map(level => level ?? 0));
-                if (highest === 0) break;
-                const key = REDUCTION_ORDER.find(k => (state.levels[k] ?? 0) === highest);
-                state.levels[key] -= 1;
-                state.points += 1;
+                if (highest > FLEX) {
+                    lowerOneStep(REDUCTION_ORDER.find(k => (state.levels[k] ?? 0) === highest));
+                } else if (state.teamUnlocked && state.levels.team > FLEX) {
+                    state.levels.team -= 1;
+                    state.points += 1;
+                } else {
+                    break;
+                }
             }
         }
 
@@ -490,22 +556,26 @@
             state.points = 0;
         }
 
-        // Once two core sliders are chosen, set the last one to the best level still affordable.
+        // Once two core sliders are chosen, set the last one to the best level the remaining
+        // points cover without overdrawing, skipping any level the rules don't allow.
         function autoFillLastSlider() {
             const unset = CORE_SLIDERS.filter(key => state.levels[key] === null);
             if (unset.length !== 1) return;
-            const level = state.points >= FIXED ? FIXED : state.points >= FIRM ? FIRM : FLEX;
-            state.levels[unset[0]] = level;
+            const key = unset[0];
+            const level = [FIXED, FIRM].find(l => l <= state.points && !isBlocked(key, l)) ?? FLEX;
+            state.levels[key] = level;
             state.points -= level;
         }
 
         function update() {
             unlockTeamIfOverdrawn();
-            // Known quirk kept from the original: the constraints callout reflects the state
-            // *before* the auto-fill, so it can stay up after the fill makes all three Firm.
-            const showConstraints = isFirmLocked();
             autoFillLastSlider();
-            render(showConstraints);
+            render();
+        }
+
+        function reset() {
+            state = initialState();
+            render();
         }
 
         // ---- Rendering ----
@@ -518,26 +588,33 @@
             teamCallout: document.getElementById('teamCallout'),
             constraintsCallout: document.getElementById('constraintsCallout'),
             sliders: document.querySelectorAll('.slider'),
+            reset: document.getElementById('resetButton'),
         };
 
-        function render(showConstraints = isFirmLocked()) {
+        function render() {
             els.points.textContent = `Points Available: ${state.points}`;
             els.points.classList.toggle('zero-points', state.points === 0);
             els.points.classList.toggle('no-points', state.points < 0);
 
             els.toggle.classList.toggle('active', state.addResources);
+            els.toggle.setAttribute('aria-checked', String(state.addResources));
             els.toggleExplanation.classList.toggle('visible', state.addResources);
 
             els.teamWrapper.classList.toggle('visible', state.teamUnlocked);
             els.teamCallout.classList.toggle('visible', state.teamUnlocked && state.levels.team < FIXED);
-            els.constraintsCallout.classList.toggle('visible', showConstraints);
+            els.constraintsCallout.classList.toggle('visible', isFirmLocked());
 
             els.sliders.forEach(slider => {
                 const key = slider.dataset.slider;
                 slider.querySelectorAll('.slider-option').forEach(option => {
                     const level = Number(option.dataset.level);
-                    option.classList.toggle('selected', state.levels[key] === level);
-                    option.classList.toggle('disabled', isBlocked(key, level) || !canAfford(key, level));
+                    const selected = state.levels[key] === level;
+                    const disabled = isBlocked(key, level) || !canAfford(key, level);
+                    option.classList.toggle('selected', selected);
+                    option.classList.toggle('disabled', disabled);
+                    option.setAttribute('aria-pressed', String(selected));
+                    // aria-disabled (not `disabled`) keeps the option focusable so it can still be read out.
+                    option.setAttribute('aria-disabled', String(disabled));
                 });
             });
         }
@@ -558,6 +635,7 @@
         });
 
         els.toggle.addEventListener('click', toggleResources);
+        els.reset.addEventListener('click', reset);
 
         render();
     </script>
